@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before MousePositioningGeneralizat is made visible.
 function MousePositioningGeneralizat_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -51,6 +50,11 @@ function MousePositioningGeneralizat_OpeningFcn(hObject, eventdata, handles, var
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to MousePositioningGeneralizat (see VARARGIN)
+
+% TCP/IP Server Initialization
+global tcpServer;
+tcpServer = tcpserver("localhost",6000); % Initialize the server
+%disp(['TCP Server initialized on port ', num2str(port)]);
 
 % Choose default command line output for MousePositioningGeneralizat
 handles.output = hObject;
@@ -85,7 +89,6 @@ axis([1,xmax,1,ymax]);
 % UIWAIT makes MousePositioningGeneralizat wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-
 % --- Outputs from this function are returned to the command line.
 function varargout = MousePositioningGeneralizat_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -96,13 +99,13 @@ function varargout = MousePositioningGeneralizat_OutputFcn(hObject, eventdata, h
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-
 % --- Executes on button press in StartButton.
 function StartButton_Callback(hObject, eventdata, handles)
 % hObject    handle to StartButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+global tcpServer;
 global xmax;
 global ymax;
 global stopflag;
@@ -110,7 +113,6 @@ global stopflag;
 set(handles.StartButton,'Visible','off');
 set(handles.StopButton ,'Visible','on');
 stopflag = false;
-
 
 % params
 coeff = [1,1000,100,10,1,1,1,1,1,1,1];
@@ -165,6 +167,9 @@ while(counter < TimeLim && stopflag == false) % keep the dot there for 2.5 secon
     historyx = [historyx,x];
     historyy = [historyy,y];
     
+    % Transmit position over TCP/IP
+    positionData = sprintf('%.2f,%.2f\n', x, y);
+    write(tcpServer, positionData);
     
     % Display position
     plot(xfin,yfin,'ko','MarkerSize',20)
@@ -212,18 +217,20 @@ if( counter >= TimeLim )
     uiwait(msgbox({['Nivel terminat in ............................. ', num2str(ttime-Ts),' secunde!'];'   '} ,'Bravo!','modal'));
 end
 
-
-
 % --- Executes on button press in StopButton.
 function StopButton_Callback(hObject, eventdata, handles)
 % hObject    handle to StopButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+global tcpServer;
+delete(tcpServer);
+disp('TCP Server stopped.');
+
 set(handles.StartButton,'Visible','on');
 set(handles.StopButton ,'Visible','off');
 global stopflag;
 stopflag = true;
-
 
 % --- Executes on button press in HelpButton.
 function HelpButton_Callback(hObject, eventdata, handles)
@@ -233,7 +240,6 @@ function HelpButton_Callback(hObject, eventdata, handles)
 %path = matlab.desktop.editor.getActiveFilename
 I = imread('Help.png');
 figure, imshow(I)
-
 
 % --- Executes on slider movement.
 function LevelSlider_Callback(hObject, eventdata, handles)
@@ -247,7 +253,6 @@ function LevelSlider_Callback(hObject, eventdata, handles)
 global level;
 level = get(hObject,'Value');
 set(handles.Level,'String',num2str(level-1));
-
 
 % --- Executes during object creation, after setting all properties.
 function LevelSlider_CreateFcn(hObject, eventdata, handles)
