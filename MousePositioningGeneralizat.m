@@ -123,6 +123,10 @@ vectory = [PL(2),zeros(1,10)];
 % final position
 xfin = xmax*0.7;
 yfin = ymax*0.7;
+positionData = sprintf('%d,%d\n', xfin, yfin);
+write(tcpServer, positionData);
+disp(xfin);
+disp(yfin);
 
 historyx = PL(1);
 historyy = PL(2);
@@ -168,8 +172,10 @@ while(counter < TimeLim && stopflag == false) % keep the dot there for 2.5 secon
     historyy = [historyy,y];
     
     % Transmit position over TCP/IP
-    positionData = sprintf('%.2f,%.2f\n', x, y);
+    positionData = sprintf('%d,%d\n', x, y);
     write(tcpServer, positionData);
+    %disp(x);
+    %disp(y);
     
     % Display position
     plot(xfin,yfin,'ko','MarkerSize',20)

@@ -30,13 +30,15 @@
         {
             connectToServerBtn = new Button();
             txtReceived = new RichTextBox();
+            solveTheGameBtn = new Button();
             SuspendLayout();
             // 
             // connectToServerBtn
             // 
-            connectToServerBtn.Location = new Point(530, 216);
+            connectToServerBtn.Location = new Point(464, 162);
+            connectToServerBtn.Margin = new Padding(3, 2, 3, 2);
             connectToServerBtn.Name = "connectToServerBtn";
-            connectToServerBtn.Size = new Size(158, 29);
+            connectToServerBtn.Size = new Size(138, 22);
             connectToServerBtn.TabIndex = 1;
             connectToServerBtn.Text = "Connect to Server";
             connectToServerBtn.UseVisualStyleBackColor = true;
@@ -44,19 +46,32 @@
             // 
             // txtReceived
             // 
-            txtReceived.Location = new Point(43, 66);
+            txtReceived.Location = new Point(38, 50);
+            txtReceived.Margin = new Padding(3, 2, 3, 2);
             txtReceived.Name = "txtReceived";
-            txtReceived.Size = new Size(221, 372);
+            txtReceived.Size = new Size(194, 280);
             txtReceived.TabIndex = 2;
             txtReceived.Text = "";
             // 
+            // solveTheGameBtn
+            // 
+            solveTheGameBtn.Location = new Point(467, 249);
+            solveTheGameBtn.Name = "solveTheGameBtn";
+            solveTheGameBtn.Size = new Size(75, 23);
+            solveTheGameBtn.TabIndex = 3;
+            solveTheGameBtn.Text = "Solve the game";
+            solveTheGameBtn.UseVisualStyleBackColor = true;
+            solveTheGameBtn.Click += solveTheGameBtn_Click;
+            // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(700, 338);
+            Controls.Add(solveTheGameBtn);
             Controls.Add(txtReceived);
             Controls.Add(connectToServerBtn);
+            Margin = new Padding(3, 2, 3, 2);
             Name = "Form1";
             Text = "Form1";
             FormClosed += Form1_Close;
@@ -67,5 +82,6 @@
         #endregion
         private Button connectToServerBtn;
         private RichTextBox txtReceived;
+        private Button solveTheGameBtn;
     }
 }

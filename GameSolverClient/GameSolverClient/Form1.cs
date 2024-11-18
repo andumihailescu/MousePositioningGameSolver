@@ -26,8 +26,7 @@ namespace GameSolverClient
             }
             else
             {
-                //txtReceived.AppendText(message + Environment.NewLine);
-                txtReceived.AppendText(message);
+                txtReceived.AppendText(message + Environment.NewLine);
                 txtReceived.ScrollToCaret();
             }
         }
@@ -40,6 +39,11 @@ namespace GameSolverClient
         private void connectToServerBtn_Click(object sender, EventArgs e)
         {
             gameSolver.ConnectToServer();
+        }
+
+        private void solveTheGameBtn_Click(object sender, EventArgs e)
+        {
+            gameSolver.SolveTheGame();
         }
     }
 }

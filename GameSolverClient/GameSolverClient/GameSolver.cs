@@ -14,6 +14,12 @@ namespace GameSolverClient
 
         public event Action<string> DataReceived;
 
+        private int x;
+        private int y;
+        private int xfin;
+        private int yfin;
+        private int i = 0;
+
         public void ConnectToServer()
         {
             try
@@ -54,8 +60,20 @@ namespace GameSolverClient
                         if (bytesRead > 0)
                         {
                             string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                            DataReceived?.Invoke(receivedMessage);
+                            string[] parts = receivedMessage.Split(',');
+                            if (i == 0)
+                            {
+                                xfin = Convert.ToInt32(parts[0]);
+                                yfin = Convert.ToInt32(parts[1]);
+                                Console.WriteLine(xfin + " " + yfin);
+                            }
+                            else
+                            {
+                                x = Convert.ToInt32(parts[0]);
+                                y = Convert.ToInt32(parts[1]);
+                                DataReceived?.Invoke(x.ToString() + " " + y.ToString());
+                            }
+                            i++;
                         }
                     }
                 }
@@ -64,6 +82,11 @@ namespace GameSolverClient
             {
                 DataReceived?.Invoke($"Error: {ex.Message}");
             }
+        }
+
+        public void SolveTheGame()
+        {
+            Cursor.Position = new Point(xfin, 1080 - yfin);
         }
 
         // Method to disconnect from the server
