@@ -172,7 +172,7 @@ while(counter < TimeLim && stopflag == false) % keep the dot there for 2.5 secon
     historyy = [historyy,y];
     
     % Transmit position over TCP/IP
-    positionData = sprintf('%d,%d\n', x, y);
+    positionData = sprintf('%d,%d\n', floor(x), floor(y));
     write(tcpServer, positionData);
     %disp(x);
     %disp(y);
@@ -221,6 +221,8 @@ if( counter >= TimeLim )
     set(handles.StopButton ,'Visible','off');
     stopflag = true;
     uiwait(msgbox({['Nivel terminat in ............................. ', num2str(ttime-Ts),' secunde!'];'   '} ,'Bravo!','modal'));
+    delete(tcpServer);
+    disp('TCP Server stopped.');
 end
 
 % --- Executes on button press in StopButton.

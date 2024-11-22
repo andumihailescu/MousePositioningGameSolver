@@ -20,7 +20,7 @@ namespace GameSolverClient
         private int yfin;
         private int i = 0;
 
-        public void ConnectToServer()
+        public async Task ConnectToServer()
         {
             try
             {
@@ -28,16 +28,14 @@ namespace GameSolverClient
                 int port = 6000; // Port of the server
 
                 client = new TcpClient();
-                client.Connect(serverIP, port);
+                await client.ConnectAsync(serverIP, port);
                 stream = client.GetStream();
 
                 // Create a new CancellationTokenSource
                 cancellationTokenSource = new CancellationTokenSource();
 
-                // Start a thread to listen for incoming messages
-                receiveThread = new Thread(() => ReceiveData(cancellationTokenSource.Token));
-                receiveThread.IsBackground = true;
-                receiveThread.Start();
+                // Start a task to listen for incoming messages
+                _ = ReceiveDataAsync(cancellationTokenSource.Token);
 
                 MessageBox.Show("Connected to the server!");
             }
@@ -47,7 +45,7 @@ namespace GameSolverClient
             }
         }
 
-        public void ReceiveData(CancellationToken cancellationToken)
+        public async Task ReceiveDataAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -56,7 +54,7 @@ namespace GameSolverClient
                     if (stream != null && stream.CanRead)
                     {
                         byte[] buffer = new byte[1024];
-                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                         if (bytesRead > 0)
                         {
                             string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
@@ -92,23 +90,10 @@ namespace GameSolverClient
         // Method to disconnect from the server
         public void DisconnectFromServer()
         {
-            // Request cancellation of the receive thread
-            if (cancellationTokenSource != null)
-            {
-                cancellationTokenSource.Cancel(); // Cancel the thread
-            }
-            if (receiveThread != null && receiveThread.IsAlive)
-            {
-                receiveThread.Join(); // Wait for the thread to finish before closing resources
-            }
-            if (stream != null)
-            {
-                stream.Close();
-            }
-            if (client != null)
-            {
-                client.Close();
-            }
+            // Request cancellation of the receive task
+            cancellationTokenSource?.Cancel(); // Cancel the task
+            stream?.Close();
+            client?.Close();
 
             // Dispose of the CancellationTokenSource
             cancellationTokenSource?.Dispose();
