@@ -123,10 +123,6 @@ vectory = [PL(2),zeros(1,10)];
 % final position
 xfin = xmax*0.7;
 yfin = ymax*0.7;
-positionData = sprintf('%d,%d\n', xfin, yfin);
-write(tcpServer, positionData);
-disp(xfin);
-disp(yfin);
 
 historyx = PL(1);
 historyy = PL(2);
@@ -171,11 +167,20 @@ while(counter < TimeLim && stopflag == false) % keep the dot there for 2.5 secon
     historyx = [historyx,x];
     historyy = [historyy,y];
     
-    % Transmit position over TCP/IP
-    positionData = sprintf('%d,%d\n', floor(x), floor(y));
-    write(tcpServer, positionData);
-    %disp(x);
-    %disp(y);
+    data = struct();
+    data.TargetXY = struct('TargetX', xfin, 'TargetY', yfin);
+    data.PositionXY = struct('PositionX', x, 'PositionY', y);
+    data.VelocityXY = struct('VelocityX', vectorx, 'VelocityY', vectory);
+    if length(historyx) > 16
+        data.HistoryXY = struct('HistoryX', historyx(end-15:end), 'HistoryY', historyy(end-15:end));
+    else
+        data.HistoryXY = struct('HistoryX', historyx, 'HistoryY', historyy);
+    end
+    data.Time = ttime;
+    data.Level = Level;
+    jsonData = jsonencode(data);
+    write(tcpServer, jsonData);
+    disp(data);
     
     % Display position
     plot(xfin,yfin,'ko','MarkerSize',20)

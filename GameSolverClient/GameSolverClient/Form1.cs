@@ -43,7 +43,7 @@ namespace GameSolverClient
 
         private void solveTheGameBtn_Click(object sender, EventArgs e)
         {
-            gameSolver.SolveTheGame();
+            //gameSolver.SolveTheGame();
         }
     }
 }
