@@ -100,6 +100,45 @@ namespace GameSolverClient
 
         }
 
+        private void PDController1()
+        {
+            // Fetch current cursor position
+            currentX = data.PositionXY.PositionX;
+            currentY = data.PositionXY.PositionY;
+
+            // PD Controller Parameters
+            double kp = 0.1; // Proportional gain (adjust as needed)
+
+            // Calculate errors (distance to target)
+            double errorX = data.TargetXY.TargetX - currentX;
+            double errorY = data.TargetXY.TargetY - currentY;
+
+            // Compute control signals
+            double controlX = kp * errorX;
+            double controlY = kp * errorY;
+
+            // Normalize control signals to prevent excessive speed
+            double maxSpeed = 100.0; // Maximum speed in pixels per frame
+            double controlMag = Math.Sqrt(controlX * controlX + controlY * controlY);
+
+            if (controlMag > maxSpeed)
+            {
+                double scale = maxSpeed / controlMag;
+                controlX *= scale;
+                controlY *= scale;
+            }
+
+            double mouseX = 1920 / 2 + controlX * (1920 / 2) / maxSpeed;
+            double mouseY = 1080 / 2 + controlY * (1080 / 2) / maxSpeed;
+
+            // Apply the calculated movement
+            MoveMouseAbsolute(mouseX, mouseY);
+
+            // Update previous position for the next iteration
+            prevX = currentX;
+            prevY = currentY;
+        }
+
         private void PDController()
         {
             // Fetch current cursor position
