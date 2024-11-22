@@ -11,27 +11,14 @@ namespace GameSolverClient
 
         private TcpClient client;  // The TCP client
         private NetworkStream stream; // The network stream for communication
-        private Thread receiveThread; // Thread for receiving data
         private CancellationTokenSource cancellationTokenSource; // Token source for cancelling the thread
 
         public event Action<string> DataReceived;
 
-        private int x;
-        private int y;
-        private int xfin;
-        private int yfin;
-
-
-
-        private int i = 0;
-
-        private System.Timers.Timer controlTimer;
         private double currentX; // Current position of the mouse
         private double currentY;
         private double prevX;    // Previous position for velocity calculation
         private double prevY;
-        private double targetX = 960; // Target position (e.g., center of the screen)
-        private double targetY = 540;
         private Data data = new Data();
 
         public async Task ConnectToServer()
@@ -124,42 +111,42 @@ namespace GameSolverClient
             double velY = data.VelocityXY.VelocityY[1];
 
             // PD Controller Parameters
-            double kp = 0.5; // Proportional gain (adjust as needed)
-            double kd = 0.1; // Derivative gain (adjust as needed)
+            double kp = 0.1; // Proportional gain (adjust as needed)
+            double kd = 0.5; // Derivative gain (adjust as needed)
 
             // Calculate errors (distance to target)
-            double errorX = targetX - currentX;
-            double errorY = targetY - currentY;
+            double errorX = data.TargetXY.TargetX - currentX;
+            double errorY = data.TargetXY.TargetY - currentY;
 
             // Compute control signals
             double controlX = kp * errorX - kd * velX;
             double controlY = kp * errorY - kd * velY;
 
             // Normalize control signals to prevent excessive speed
-            double maxSpeed = 10.0; // Maximum speed in pixels per frame
+            double maxAcceleration = 100.0; // Maximum speed in pixels per frame
             double controlMag = Math.Sqrt(controlX * controlX + controlY * controlY);
 
-            if (controlMag > maxSpeed)
+            if (controlMag > maxAcceleration)
             {
-                double scale = maxSpeed / controlMag;
+                double scale = maxAcceleration / controlMag;
                 controlX *= scale;
                 controlY *= scale;
             }
 
+            double mouseX = 1920 / 2 + controlX * (1920 / 2) / maxAcceleration;
+            double mouseY = 1080 / 2 + controlY * (1080 / 2) / maxAcceleration;
+
             // Apply the calculated movement
-            MoveMouseRelative(controlX, controlY);
+            MoveMouseAbsolute(mouseX, mouseY);
 
             // Update previous position for the next iteration
             prevX = currentX;
             prevY = currentY;
         }
 
-        // Move the mouse cursor relative to its current position
-        private void MoveMouseRelative(double offsetX, double offsetY)
+        private void MoveMouseAbsolute(double mouseX, double mouseY)
         {
-            int newPosX = (int)Math.Round(currentX + offsetX);
-            int newPosY = (int)Math.Round(currentY + offsetY);
-            Cursor.Position = new Point(newPosX, 1080 - newPosY);
+            Cursor.Position = new Point((int)mouseX, 1080 - (int)mouseY);
         }
 
         // Method to disconnect from the server
