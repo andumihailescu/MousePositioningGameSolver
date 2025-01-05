@@ -1,8 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.VisualBasic.Devices;
+using Newtonsoft.Json;
+using OxyPlot;
+using OxyPlot.Series;
+using OxyPlot.WindowsForms;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
+using System.Diagnostics;
 
 namespace GameSolverClient
 {
@@ -17,9 +24,32 @@ namespace GameSolverClient
 
         private double currentX; // Current position of the mouse
         private double currentY;
-        private double prevX;    // Previous position for velocity calculation
-        private double prevY;
         private Data data = new Data();
+        private bool startSolving = false;
+
+        private double kp;
+        private double kd;
+
+        public void SetKpKd(double kp, double kd)
+        {
+            this.kp = kp;
+            this.kd = kd;
+        }
+
+        public bool StartSolving { get => startSolving; set => startSolving = value; }
+
+        public LineSeries lineSeriesX;
+        public LineSeries lineSeriesY;
+
+        private Stopwatch stopWatch;
+
+        public GameSolver()
+        {
+            lineSeriesX = new LineSeries();
+            lineSeriesY = new LineSeries();
+
+            stopWatch = new Stopwatch();
+        }
 
         public async Task ConnectToServer()
         {
@@ -64,21 +94,21 @@ namespace GameSolverClient
                             {
                                 data = JsonConvert.DeserializeObject<Data>(receivedMessage);
 
-                                PDController();
+                                if (startSolving == false)
+                                {
+                                    stopWatch.Start();
+                                    startSolving = true;
+                                }
+                                SolveTheGame();
 
-                                /*// Access the parsed data
-                                Console.WriteLine("Target X: " + data.TargetXY.TargetX);
-                                Console.WriteLine("Target Y: " + data.TargetXY.TargetY);
-                                Console.WriteLine("Position X: " + data.PositionXY.PositionX);
-                                Console.WriteLine("Position Y: " + data.PositionXY.PositionY);
-                                Console.WriteLine("Velocity X: " + string.Join(", ", data.VelocityXY.VelocityX));
-                                Console.WriteLine("Velocity Y: " + string.Join(", ", data.VelocityXY.VelocityY));
-                                Console.WriteLine("History X: " + string.Join(", ", data.HistoryXY.HistoryX));
-                                Console.WriteLine("History Y: " + string.Join(", ", data.HistoryXY.HistoryY));
-                                Console.WriteLine("Time: " + data.Time);
-                                Console.WriteLine("Level: " + data.Level);*/
+                                /*if (startSolving)
+                                {
+                                    
+                                }
+                                else
+                                {
 
-                                DataReceived?.Invoke(Math.Floor(data.PositionXY.PositionX).ToString() + " " + Math.Floor(data.PositionXY.PositionY).ToString());
+                                }*/
                             }
                             catch (JsonException ex)
                             {
@@ -96,18 +126,42 @@ namespace GameSolverClient
 
         public void SolveTheGame()
         {
-            //Cursor.Position = new Point(xfin, 1080 - yfin);
+            try
+            {
+                DataReceived?.Invoke(Math.Floor(data.PositionXY.PositionX).ToString() + " " + Math.Floor(data.PositionXY.PositionY).ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error displaying position: " + ex.Message);
+            }
+
+            switch (data.Level)
+            {
+                case 1:
+                    SolveLevel0();
+                    break;
+                case 2:
+                    SolveLevel1();
+                    break;
+                case 3:
+                    SolveLevel2();
+                    break;
+            }
 
         }
 
-        private void PDController1()
+        private void SolveLevel0()
+        {
+            double mouseX = data.TargetXY.TargetX;
+            double mouseY = data.TargetXY.TargetY;
+            MoveMouseAbsolute(mouseX, mouseY);
+        }
+
+        private void SolveLevel1()
         {
             // Fetch current cursor position
             currentX = data.PositionXY.PositionX;
             currentY = data.PositionXY.PositionY;
-
-            // PD Controller Parameters
-            double kp = 0.1; // Proportional gain (adjust as needed)
 
             // Calculate errors (distance to target)
             double errorX = data.TargetXY.TargetX - currentX;
@@ -133,13 +187,9 @@ namespace GameSolverClient
 
             // Apply the calculated movement
             MoveMouseAbsolute(mouseX, mouseY);
-
-            // Update previous position for the next iteration
-            prevX = currentX;
-            prevY = currentY;
         }
 
-        private void PDController()
+        private void SolveLevel2()
         {
             // Fetch current cursor position
             currentX = data.PositionXY.PositionX;
@@ -148,10 +198,6 @@ namespace GameSolverClient
             // Fetch velocity
             double velX = data.VelocityXY.VelocityX[1];
             double velY = data.VelocityXY.VelocityY[1];
-
-            // PD Controller Parameters
-            double kp = 0.1; // Proportional gain (adjust as needed)
-            double kd = 0.5; // Derivative gain (adjust as needed)
 
             // Calculate errors (distance to target)
             double errorX = data.TargetXY.TargetX - currentX;
@@ -177,15 +223,20 @@ namespace GameSolverClient
 
             // Apply the calculated movement
             MoveMouseAbsolute(mouseX, mouseY);
-
-            // Update previous position for the next iteration
-            prevX = currentX;
-            prevY = currentY;
         }
 
         private void MoveMouseAbsolute(double mouseX, double mouseY)
         {
             Cursor.Position = new Point((int)mouseX, 1080 - (int)mouseY);
+            AddPoints(mouseX, mouseY);
+        }
+
+        private void AddPoints(double x, double y)
+        {
+            // Add a new point to the LineSeries
+            var time = (stopWatch.ElapsedMilliseconds / 0.1) * 0.1;
+            lineSeriesX.Points.Add(new DataPoint(time, x));
+            lineSeriesY.Points.Add(new DataPoint(time, y));
         }
 
         // Method to disconnect from the server

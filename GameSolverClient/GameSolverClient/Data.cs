@@ -24,19 +24,11 @@ namespace GameSolverClient
         public List<double> VelocityY { get; set; }
     }
 
-    public class History
-    {
-        public List<double> HistoryX{ get; set; }
-        public List<double> HistoryY { get; set; }
-    }
-
     public class Data
     {
         public Target TargetXY { get; set; }
         public Position PositionXY { get; set; }
         public Velocity VelocityXY { get; set; }
-        public History HistoryXY { get; set; }
-        public float Time { get; set; }
         public int Level { get; set; }
     }
 }

@@ -171,12 +171,6 @@ while(counter < TimeLim && stopflag == false) % keep the dot there for 2.5 secon
     data.TargetXY = struct('TargetX', xfin, 'TargetY', yfin);
     data.PositionXY = struct('PositionX', x, 'PositionY', y);
     data.VelocityXY = struct('VelocityX', vectorx, 'VelocityY', vectory);
-    if length(historyx) > 16
-        data.HistoryXY = struct('HistoryX', historyx(end-15:end), 'HistoryY', historyy(end-15:end));
-    else
-        data.HistoryXY = struct('HistoryX', historyx, 'HistoryY', historyy);
-    end
-    data.Time = ttime;
     data.Level = Level;
     jsonData = jsonencode(data);
     write(tcpServer, jsonData);
