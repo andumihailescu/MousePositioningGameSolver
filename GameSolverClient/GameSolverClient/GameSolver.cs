@@ -55,19 +55,13 @@ namespace GameSolverClient
         {
             try
             {
-                string serverIP = "localhost"; // Change to the server's IP
-                int port = 6000; // Port of the server
-
+                string serverIP = "localhost";
+                int port = 6000;
                 client = new TcpClient();
                 await client.ConnectAsync(serverIP, port);
                 stream = client.GetStream();
-
-                // Create a new CancellationTokenSource
                 cancellationTokenSource = new CancellationTokenSource();
-
-                // Start a task to listen for incoming messages
                 _ = ReceiveDataAsync(cancellationTokenSource.Token);
-
                 DataReceived?.Invoke("Connected...");
             }
             catch (Exception ex)
@@ -89,26 +83,15 @@ namespace GameSolverClient
                         if (bytesRead > 0)
                         {
                             string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
                             try
                             {
                                 data = JsonConvert.DeserializeObject<Data>(receivedMessage);
-
                                 if (startSolving == false)
                                 {
                                     stopWatch.Start();
                                     startSolving = true;
                                 }
                                 SolveTheGame();
-
-                                /*if (startSolving)
-                                {
-                                    
-                                }
-                                else
-                                {
-
-                                }*/
                             }
                             catch (JsonException ex)
                             {
@@ -134,7 +117,6 @@ namespace GameSolverClient
             {
                 Console.WriteLine("Error displaying position: " + ex.Message);
             }
-
             switch (data.Level)
             {
                 case 1:
@@ -147,7 +129,6 @@ namespace GameSolverClient
                     SolveLevel2();
                     break;
             }
-
         }
 
         private void SolveLevel0()
@@ -159,20 +140,16 @@ namespace GameSolverClient
 
         private void SolveLevel1()
         {
-            // Fetch current cursor position
             currentX = data.PositionXY.PositionX;
             currentY = data.PositionXY.PositionY;
 
-            // Calculate errors (distance to target)
             double errorX = data.TargetXY.TargetX - currentX;
             double errorY = data.TargetXY.TargetY - currentY;
 
-            // Compute control signals
             double controlX = kp * errorX;
             double controlY = kp * errorY;
 
-            // Normalize control signals to prevent excessive speed
-            double maxSpeed = 100.0; // Maximum speed in pixels per frame
+            double maxSpeed = 100.0;
             double controlMag = Math.Sqrt(controlX * controlX + controlY * controlY);
 
             if (controlMag > maxSpeed)
@@ -185,30 +162,24 @@ namespace GameSolverClient
             double mouseX = 1920 / 2 + controlX * (1920 / 2) / maxSpeed;
             double mouseY = 1080 / 2 + controlY * (1080 / 2) / maxSpeed;
 
-            // Apply the calculated movement
             MoveMouseAbsolute(mouseX, mouseY);
         }
 
         private void SolveLevel2()
         {
-            // Fetch current cursor position
             currentX = data.PositionXY.PositionX;
             currentY = data.PositionXY.PositionY;
 
-            // Fetch velocity
             double velX = data.VelocityXY.VelocityX[1];
             double velY = data.VelocityXY.VelocityY[1];
 
-            // Calculate errors (distance to target)
             double errorX = data.TargetXY.TargetX - currentX;
             double errorY = data.TargetXY.TargetY - currentY;
 
-            // Compute control signals
             double controlX = kp * errorX - kd * velX;
             double controlY = kp * errorY - kd * velY;
 
-            // Normalize control signals to prevent excessive speed
-            double maxAcceleration = 100.0; // Maximum speed in pixels per frame
+            double maxAcceleration = 100.0;
             double controlMag = Math.Sqrt(controlX * controlX + controlY * controlY);
 
             if (controlMag > maxAcceleration)
@@ -221,7 +192,6 @@ namespace GameSolverClient
             double mouseX = 1920 / 2 + controlX * (1920 / 2) / maxAcceleration;
             double mouseY = 1080 / 2 + controlY * (1080 / 2) / maxAcceleration;
 
-            // Apply the calculated movement
             MoveMouseAbsolute(mouseX, mouseY);
         }
 
@@ -233,21 +203,17 @@ namespace GameSolverClient
 
         private void AddPoints(double x, double y)
         {
-            // Add a new point to the LineSeries
             var time = (stopWatch.ElapsedMilliseconds / 0.1) * 0.1;
             lineSeriesX.Points.Add(new DataPoint(time, x));
             lineSeriesY.Points.Add(new DataPoint(time, y));
         }
 
-        // Method to disconnect from the server
         public void DisconnectFromServer()
         {
-            // Request cancellation of the receive task
-            cancellationTokenSource?.Cancel(); // Cancel the task
+            cancellationTokenSource?.Cancel();
             stream?.Close();
             client?.Close();
 
-            // Dispose of the CancellationTokenSource
             cancellationTokenSource?.Dispose();
         }
     }

@@ -89,7 +89,7 @@
             // 
             // kpNumeric
             // 
-            kpNumeric.DecimalPlaces = 1;
+            kpNumeric.DecimalPlaces = 2;
             kpNumeric.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
             kpNumeric.Location = new Point(641, 8);
             kpNumeric.Margin = new Padding(3, 2, 3, 2);
@@ -100,7 +100,7 @@
             // 
             // kdNumeric
             // 
-            kdNumeric.DecimalPlaces = 1;
+            kdNumeric.DecimalPlaces = 2;
             kdNumeric.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
             kdNumeric.Location = new Point(641, 33);
             kdNumeric.Margin = new Padding(3, 2, 3, 2);
